@@ -1,3 +1,4 @@
+import {loadExcelExporter} from './startup.mjs';
 import {archiveTechnician,restoreTechnician} from './technician-management.mjs';
 import {createPersistence} from './persistence.mjs';
 import {setupDataTools} from './data-tools.mjs';
@@ -48,9 +49,11 @@ const roomManager=createRoomManager({state,render});$('addRoom').onclick=()=>roo
 const openEditor=createBookingEditor({state,projects,render,getBookings});$('day').value=day();$('quoteAt').value=day()+'T'+time();$('day').onchange=render;$('quoteBtn').onclick=quote;$('addBooking').onclick=openBooking;$('addTech').onclick=()=>openTech();for(const id of ['bookingAt','bookingProject','assignment','designatedTech'])$(id).onchange=()=>{chosen=null;$('bookingError').textContent='';suggestions()};for(const id of ['quoteAt'])$(id).onchange=quote;document.querySelectorAll('[data-close]').forEach(el=>el.onclick=()=>el.closest('dialog').close());render();
 
 $('quoteNow').onclick=()=>{$('quoteAt').value=day()+'T'+time();window.ElementSelects?.sync();quote()};
-$('exportExcel').onclick=async()=>{const button=$('exportExcel');button.disabled=true;try{await window.HanExcel.download({date:currentDay(),bookings:state.bookings,techs:state.techs,rooms:state.rooms,projects})}catch(e){alert('Excel导出失败：'+e.message)}finally{button.disabled=false}};
+$('exportExcel').onclick=async()=>{const button=$('exportExcel');button.disabled=true;const label=button.textContent;button.textContent='正在导出…';try{await (await loadExcelExporter()).download({date:currentDay(),bookings:state.bookings,techs:state.techs,rooms:state.rooms,projects})}catch(e){alert('Excel导出失败：'+e.message)}finally{button.disabled=false;button.textContent=label}};
 
 function renderArchivedTechs(){const items=state.techs.filter(t=>t.deleted);$('archivedTechs').hidden=!items.length;$('archivedTechs').innerHTML='<summary>已删除技师（'+items.length+'）· 可恢复</summary>'+items.map(t=>'<div class="deleted-row"><span>'+esc(t.name)+'</span><button class="small" data-tech-restore="'+esc(t.id)+'">恢复</button></div>').join('');$('archivedTechs').querySelectorAll('[data-tech-restore]').forEach(el=>el.onclick=()=>{restoreTechnician(state,el.dataset.techRestore);$('techMessage').textContent='技师已恢复';render()})}
 
 function toggleTodoSidebar(collapsed){$('todoSidebar').classList.toggle('is-collapsed',collapsed);document.body.classList.toggle('todos-collapsed',collapsed);$('toggleTodos').setAttribute('aria-expanded',String(!collapsed));$('expandTodos').hidden=!collapsed;$('todos').hidden=collapsed;$('todoSidebar').querySelector('.todo-sidebar-header').hidden=collapsed}
 $('toggleTodos').onclick=()=>toggleTodoSidebar(true);$('expandTodos').onclick=()=>toggleTodoSidebar(false);
+
+window.addEventListener('han-controls-ready',()=>{window.ElementSelects?.mount();window.ElementSelects?.sync()});
