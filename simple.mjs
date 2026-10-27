@@ -57,3 +57,5 @@ function toggleTodoSidebar(collapsed){$('todoSidebar').classList.toggle('is-coll
 $('toggleTodos').onclick=()=>toggleTodoSidebar(true);$('expandTodos').onclick=()=>toggleTodoSidebar(false);
 
 window.addEventListener('han-controls-ready',()=>{window.ElementSelects?.mount();window.ElementSelects?.sync()});
+
+document.querySelector('script[src*="element-controls.js"]')?.addEventListener('load',()=>{window.ElementSelects?.mount();window.ElementSelects?.sync()});
